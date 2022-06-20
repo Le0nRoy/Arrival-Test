@@ -1,5 +1,5 @@
 import pytest
-import api
+from api import Pins, Signal, BrakePedalState
 
 
 def test_state_pressed():

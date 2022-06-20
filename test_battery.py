@@ -1,6 +1,5 @@
 import pytest
-from api import Pins
-from api import Signals
+from api import Pins, Signal, BatteryState
 from helper import get_random_float
 
 

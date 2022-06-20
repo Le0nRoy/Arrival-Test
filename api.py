@@ -1,4 +1,6 @@
 import requests
+from helper import get_random_float
+from random import choice
 
 REQUEST_URL_BASE = "http://localhost:8099/api"
 
@@ -27,24 +29,6 @@ def send_request(request_url: str, request_method: str = "get", data: dict = Non
     return r
 
 
-class Signals:
-    GearPosition = 1
-    AccPedalPos = 2
-    BrakePedalState = 3
-    ReqTorque = 4
-    BatteryState = 5
-
-    @staticmethod
-    def get_signal_state(signal_id: int) -> str:
-        request_url = f"{REQUEST_URL_BASE}/signals/{signal_id}"
-        return send_request(request_url).json()['Value']
-
-    @staticmethod
-    def get_all_signals_states() -> dict:
-        request_url = f"{REQUEST_URL_BASE}/signals"
-        return send_request(request_url).json()
-
-
 class Pins:
     Gear_1 = 1
     Gear_2 = 2
@@ -71,3 +55,152 @@ class Pins:
     def set_multiple_pins_voltage(json_data: dict):
         request_url = f"{REQUEST_URL_BASE}/pins/update_pin"
         send_request(request_url, json_data=json_data)
+
+
+class Signal:
+    ID = None
+    REQUEST_URL_SIGNAL = f"{REQUEST_URL_BASE}/signals"
+
+    @staticmethod
+    def get_signal_state() -> str:
+        if __class__.ID is None or not 1 <= __class__.ID <= 5:
+            raise TypeError("`Signal` is abstract class and should not be used directly")
+        request_url = f"{__class__.REQUEST_URL_SIGNAL}/{__class__.ID}"
+        return send_request(request_url).json()['Value']
+
+    @staticmethod
+    def get_all_signals_states() -> dict:
+        return send_request(Signal.REQUEST_URL_SIGNAL).json()
+
+
+class GearPosition(Signal):
+    ID = 1
+    __PARK = {Pins.Gear_1: 0.67, Pins.Gear_2: 3.12}
+    __NEUTRAL = {Pins.Gear_1: 1.48, Pins.Gear_2: 2.28}
+    __REVERSE = {Pins.Gear_1: 2.28, Pins.Gear_2: 1.48}
+    __DRIVE = {Pins.Gear_1: 3.12, Pins.Gear_2: 0.67}
+
+    @staticmethod
+    def set_state_park():
+        Pins.set_pin_voltage(Pins.Gear_1, GearPosition.__PARK[Pins.Gear_1])
+        Pins.set_pin_voltage(Pins.Gear_2, GearPosition.__PARK[Pins.Gear_2])
+
+    @staticmethod
+    def set_state_neutral():
+        Pins.set_pin_voltage(Pins.Gear_1, GearPosition.__NEUTRAL[Pins.Gear_1])
+        Pins.set_pin_voltage(Pins.Gear_2, GearPosition.__NEUTRAL[Pins.Gear_2])
+
+    @staticmethod
+    def set_state_reverse():
+        Pins.set_pin_voltage(Pins.Gear_1, GearPosition.__REVERSE[Pins.Gear_1])
+        Pins.set_pin_voltage(Pins.Gear_2, GearPosition.__REVERSE[Pins.Gear_2])
+
+    @staticmethod
+    def set_state_drive():
+        Pins.set_pin_voltage(Pins.Gear_1, GearPosition.__DRIVE[Pins.Gear_1])
+        Pins.set_pin_voltage(Pins.Gear_2, GearPosition.__DRIVE[Pins.Gear_2])
+
+
+class AccPedalState(Signal):
+    ID = 2
+    __0_LOW = 1
+    __0_HIGH = 2
+    __30_LOW = __0_HIGH
+    __30_HIGH = 2.5
+    __50_LOW = __30_HIGH
+    __50_HIGH = 3
+    __100_LOW = __50_HIGH
+    __100_HIGH = 3.5
+
+    @staticmethod
+    def set_state_0():
+        Pins.set_pin_voltage(Pins.AccPedal,
+                             get_random_float(AccPedalState.__0_LOW, AccPedalState.__0_HIGH))
+
+    @staticmethod
+    def set_state_30():
+        Pins.set_pin_voltage(Pins.AccPedal,
+                             get_random_float(AccPedalState.__30_LOW, AccPedalState.__30_HIGH))
+
+    @staticmethod
+    def set_state_50():
+        Pins.set_pin_voltage(Pins.AccPedal,
+                             get_random_float(AccPedalState.__50_LOW, AccPedalState.__50_HIGH))
+
+    @staticmethod
+    def set_state_100():
+        Pins.set_pin_voltage(Pins.AccPedal,
+                             get_random_float(AccPedalState.__100_LOW, AccPedalState.__100_HIGH))
+
+    @staticmethod
+    def set_state_error():
+        random_error_value_low = get_random_float(0, AccPedalState.__0_LOW)
+        random_error_value_high = get_random_float(AccPedalState.__100_HIGH, AccPedalState.__100_HIGH * 2)
+        Pins.set_pin_voltage(Pins.AccPedal, choice([random_error_value_low, random_error_value_high]))
+
+
+class BrakePedalState(Signal):
+    ID = 3
+    __PRESSED_LOW = 1
+    __PRESSED_HIGH = 2
+    __RELEASED_LOW = __PRESSED_HIGH
+    __RELEASED_HIGH = 3
+
+    @staticmethod
+    def set_state_pressed():
+        Pins.set_pin_voltage(Pins.BrakePedal,
+                             get_random_float(BrakePedalState.__PRESSED_LOW, BrakePedalState.__PRESSED_HIGH))
+
+    @staticmethod
+    def set_state_released():
+        Pins.set_pin_voltage(Pins.BrakePedal,
+                             get_random_float(BrakePedalState.__RELEASED_LOW, BrakePedalState.__RELEASED_HIGH))
+
+    @staticmethod
+    def set_state_error():
+        random_error_value_low = get_random_float(0, BrakePedalState.__PRESSED_LOW)
+        random_error_value_high = get_random_float(BrakePedalState.__PRESSED_HIGH, BrakePedalState.__PRESSED_HIGH * 2)
+        Pins.set_pin_voltage(Pins.BrakePedal, choice([random_error_value_low, random_error_value_high]))
+
+
+class ReqTorque(Signal):
+    ID = 4
+
+    @staticmethod
+    def set_state_0nm():
+        pass
+
+    @staticmethod
+    def set_state_3000nm():
+        pass
+
+    @staticmethod
+    def set_state_5000nm():
+        pass
+
+    @staticmethod
+    def set_state_10000nm():
+        pass
+
+
+class BatteryState(Signal):
+    ID = 5
+    __NOT_READY_LOW = 0
+    __NOT_READY_HIGH = 400
+    __READY_LOW = __NOT_READY_HIGH
+    __READY_HIGH = 800
+
+    @staticmethod
+    def set_state_ready():
+        Pins.set_pin_voltage(Pins.BatteryVoltage, get_random_float(BatteryState.__READY_LOW, BatteryState.__READY_HIGH))
+
+    @staticmethod
+    def set_state_not_ready():
+        Pins.set_pin_voltage(Pins.BatteryVoltage,
+                             get_random_float(BatteryState.__NOT_READY_LOW, BatteryState.__NOT_READY_HIGH))
+
+    @staticmethod
+    def set_state_error():
+        random_error_value_low = get_random_float(0, BatteryState.__NOT_READY_LOW)
+        random_error_value_high = get_random_float(BatteryState.__NOT_READY_HIGH, BatteryState.__NOT_READY_HIGH * 2)
+        Pins.set_pin_voltage(Pins.BatteryVoltage, choice([random_error_value_low, random_error_value_high]))

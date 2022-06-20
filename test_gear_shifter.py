@@ -1,5 +1,5 @@
 import pytest
-import api
+from api import Pins, Signal, GearPosition
 
 
 def test_state_park():
