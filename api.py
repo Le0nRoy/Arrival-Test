@@ -42,39 +42,43 @@ class Pins:
         return send_request(request_url).json()['Voltage']
 
     @staticmethod
-    def get_all_pins_voltages() -> dict:
+    def get_all_pins_voltages() -> list:
         request_url = f"{REQUEST_URL_BASE}/pins"
         return send_request(request_url).json()
 
     @staticmethod
     def set_pin_voltage(pin_id: int, voltage: float):
         request_url = f"{REQUEST_URL_BASE}/pins/{pin_id}/update_pin"
-        send_request(request_url, data={'Voltage': voltage})
+        send_request(request_url, request_method="post", data={'Voltage': voltage})
 
     @staticmethod
     def set_multiple_pins_voltage(json_data: dict):
         request_url = f"{REQUEST_URL_BASE}/pins/update_pin"
-        send_request(request_url, json_data=json_data)
+        send_request(request_url, request_method="post", json_data=json_data)
 
 
 class Signal:
     ID = None
-    REQUEST_URL_SIGNAL = f"{REQUEST_URL_BASE}/signals"
+    SIGNAL_NAME = None
+    __REQUEST_URL_SIGNAL = f"{REQUEST_URL_BASE}/signals"
 
     @staticmethod
     def get_signal_state() -> str:
         if __class__.ID is None or not 1 <= __class__.ID <= 5:
             raise TypeError("`Signal` is abstract class and should not be used directly")
-        request_url = f"{__class__.REQUEST_URL_SIGNAL}/{__class__.ID}"
+        request_url = f"{__class__.__REQUEST_URL_SIGNAL}/{__class__.ID}"
         return send_request(request_url).json()['Value']
 
     @staticmethod
-    def get_all_signals_states() -> dict:
-        return send_request(Signal.REQUEST_URL_SIGNAL).json()
+    def get_all_signals_states() -> list:
+        return send_request(Signal.__REQUEST_URL_SIGNAL).json()
 
 
+# TODO `set_state_*` functions may be upgraded to set needed state of other signals.
+#  However for now it is not needed and may make logic too complicated.
 class GearPosition(Signal):
     ID = 1
+    SIGNAL_NAME = "GearPosition"
     __PARK = {Pins.Gear_1: 0.67, Pins.Gear_2: 3.12}
     __NEUTRAL = {Pins.Gear_1: 1.48, Pins.Gear_2: 2.28}
     __REVERSE = {Pins.Gear_1: 2.28, Pins.Gear_2: 1.48}
@@ -103,6 +107,7 @@ class GearPosition(Signal):
 
 class AccPedalState(Signal):
     ID = 2
+    SIGNAL_NAME = "AccPedalPos"
     __0_LOW = 1
     __0_HIGH = 2
     __30_LOW = __0_HIGH
@@ -141,6 +146,7 @@ class AccPedalState(Signal):
 
 class BrakePedalState(Signal):
     ID = 3
+    SIGNAL_NAME = "BrakePedalState"
     __PRESSED_LOW = 1
     __PRESSED_HIGH = 2
     __RELEASED_LOW = __PRESSED_HIGH
@@ -165,26 +171,12 @@ class BrakePedalState(Signal):
 
 class ReqTorque(Signal):
     ID = 4
-
-    @staticmethod
-    def set_state_0nm():
-        pass
-
-    @staticmethod
-    def set_state_3000nm():
-        pass
-
-    @staticmethod
-    def set_state_5000nm():
-        pass
-
-    @staticmethod
-    def set_state_10000nm():
-        pass
+    SIGNAL_NAME = "ReqTorque"
 
 
 class BatteryState(Signal):
     ID = 5
+    SIGNAL_NAME = "BatteryState"
     __NOT_READY_LOW = 0
     __NOT_READY_HIGH = 400
     __READY_LOW = __NOT_READY_HIGH

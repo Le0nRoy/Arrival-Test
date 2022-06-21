@@ -1,19 +1,52 @@
 import pytest
-from api import Pins, Signal, BatteryState
+from api import Pins, Signal, BatteryState, BrakePedalState, AccPedalState, GearPosition
 from helper import get_random_float
 
 
-@pytest.fixture()
-def setup():
-    payload = {"Pins": [
-        {"PinID": Pins.BatteryVoltage, "Voltage": get_random_float(0, 399)},
-        {"PinID": Pins.BrakePedal, "Voltage": get_random_float(1, 2)},
-        {"PinID": Pins.AccPedal, "Voltage": get_random_float(1, 2)},
-        {"PinID": Pins.Gear_2, "Voltage": 2.28},
-        {"PinID": Pins.Gear_1, "Voltage": 1.48},
-    ]}
-    Pins.set_multiple_pins_voltage(json_data=payload)
+class TestStateReady:
+    @staticmethod
+    def setup_method():
+        BrakePedalState.set_state_pressed()
+        AccPedalState.set_state_0()
+        GearPosition.set_state_neutral()
 
+    @staticmethod
+    def test_state_ready_max_voltage():
+        BatteryState.set_state_not_ready()
+        pre_test_states = Signal.get_all_signals_states()
+        Pins.set_pin_voltage(Pins.BatteryVoltage, 800)
+        states = BatteryState.get_all_signals_states()
+        for item in states:
+            if item['Name'] == BatteryState.SIGNAL_NAME:
+                assert item['Value'] == "Ready"
+            else:
+                assert pre_test_states.count(item) == 1
 
-def test_state_ready():
-    pass
+    @staticmethod
+    def test_state_ready_random_voltage():
+        BatteryState.set_state_not_ready()
+        pre_test_states = Signal.get_all_signals_states()
+        # Method is implemented such way that applies random value
+        BatteryState.set_state_ready()
+        states = BatteryState.get_all_signals_states()
+        for item in states:
+            if item['Name'] == BatteryState.SIGNAL_NAME:
+                assert item['Value'] == "Ready"
+            else:
+                assert pre_test_states.count(item) == 1
+
+    @staticmethod
+    def test_state_ready_min_voltage():
+        BatteryState.set_state_not_ready()
+        pre_test_states = Signal.get_all_signals_states()
+        start_voltage = 400.5
+        Pins.set_pin_voltage(Pins.BatteryVoltage, start_voltage)
+        for i in range(1, 5):
+            # Here we can set fraction we need. I suppose fluctuation =0.1V is good enough for High voltage battery
+            Pins.set_pin_voltage(Pins.BatteryVoltage, start_voltage - i / 10)
+            states = BatteryState.get_all_signals_states()
+            for item in states:
+                if item['Name'] == BatteryState.SIGNAL_NAME:
+                    assert item['Value'] == "Ready"
+                else:
+                    assert pre_test_states.count(item) == 1
