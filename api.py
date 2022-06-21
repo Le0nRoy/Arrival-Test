@@ -1,6 +1,7 @@
 import requests
-from helper import get_random_float
+# from helper import uniform
 from random import choice
+from random import uniform
 
 REQUEST_URL_BASE = "http://localhost:8099/api"
 
@@ -62,11 +63,11 @@ class Signal:
     SIGNAL_NAME = None
     __REQUEST_URL_SIGNAL = f"{REQUEST_URL_BASE}/signals"
 
-    @staticmethod
-    def get_signal_state() -> str:
-        if __class__.ID is None or not 1 <= __class__.ID <= 5:
+    @classmethod
+    def get_signal_state(cls) -> str:
+        if cls.ID is None or not 1 <= cls.ID <= 5:
             raise TypeError("`Signal` is abstract class and should not be used directly")
-        request_url = f"{__class__.__REQUEST_URL_SIGNAL}/{__class__.ID}"
+        request_url = f"{cls.__REQUEST_URL_SIGNAL}/{cls.ID}"
         return send_request(request_url).json()['Value']
 
     @staticmethod
@@ -119,28 +120,24 @@ class AccPedalState(Signal):
 
     @staticmethod
     def set_state_0():
-        Pins.set_pin_voltage(Pins.AccPedal,
-                             get_random_float(AccPedalState.__0_LOW, AccPedalState.__0_HIGH))
+        Pins.set_pin_voltage(Pins.AccPedal, uniform(AccPedalState.__0_LOW, AccPedalState.__0_HIGH))
 
     @staticmethod
     def set_state_30():
-        Pins.set_pin_voltage(Pins.AccPedal,
-                             get_random_float(AccPedalState.__30_LOW, AccPedalState.__30_HIGH))
+        Pins.set_pin_voltage(Pins.AccPedal, uniform(AccPedalState.__30_LOW, AccPedalState.__30_HIGH))
 
     @staticmethod
     def set_state_50():
-        Pins.set_pin_voltage(Pins.AccPedal,
-                             get_random_float(AccPedalState.__50_LOW, AccPedalState.__50_HIGH))
+        Pins.set_pin_voltage(Pins.AccPedal, uniform(AccPedalState.__50_LOW, AccPedalState.__50_HIGH))
 
     @staticmethod
     def set_state_100():
-        Pins.set_pin_voltage(Pins.AccPedal,
-                             get_random_float(AccPedalState.__100_LOW, AccPedalState.__100_HIGH))
+        Pins.set_pin_voltage(Pins.AccPedal, uniform(AccPedalState.__100_LOW, AccPedalState.__100_HIGH))
 
     @staticmethod
     def set_state_error():
-        random_error_value_low = get_random_float(0, AccPedalState.__0_LOW)
-        random_error_value_high = get_random_float(AccPedalState.__100_HIGH, AccPedalState.__100_HIGH * 2)
+        random_error_value_low = uniform(0, AccPedalState.__0_LOW)
+        random_error_value_high = uniform(AccPedalState.__100_HIGH, AccPedalState.__100_HIGH * 2)
         Pins.set_pin_voltage(Pins.AccPedal, choice([random_error_value_low, random_error_value_high]))
 
 
@@ -154,18 +151,16 @@ class BrakePedalState(Signal):
 
     @staticmethod
     def set_state_pressed():
-        Pins.set_pin_voltage(Pins.BrakePedal,
-                             get_random_float(BrakePedalState.__PRESSED_LOW, BrakePedalState.__PRESSED_HIGH))
+        Pins.set_pin_voltage(Pins.BrakePedal, uniform(BrakePedalState.__PRESSED_LOW, BrakePedalState.__PRESSED_HIGH))
 
     @staticmethod
     def set_state_released():
-        Pins.set_pin_voltage(Pins.BrakePedal,
-                             get_random_float(BrakePedalState.__RELEASED_LOW, BrakePedalState.__RELEASED_HIGH))
+        Pins.set_pin_voltage(Pins.BrakePedal, uniform(BrakePedalState.__RELEASED_LOW, BrakePedalState.__RELEASED_HIGH))
 
     @staticmethod
     def set_state_error():
-        random_error_value_low = get_random_float(0, BrakePedalState.__PRESSED_LOW)
-        random_error_value_high = get_random_float(BrakePedalState.__PRESSED_HIGH, BrakePedalState.__PRESSED_HIGH * 2)
+        random_error_value_low = uniform(0, BrakePedalState.__PRESSED_LOW)
+        random_error_value_high = uniform(BrakePedalState.__PRESSED_HIGH, BrakePedalState.__PRESSED_HIGH * 2)
         Pins.set_pin_voltage(Pins.BrakePedal, choice([random_error_value_low, random_error_value_high]))
 
 
@@ -184,15 +179,15 @@ class BatteryState(Signal):
 
     @staticmethod
     def set_state_ready():
-        Pins.set_pin_voltage(Pins.BatteryVoltage, get_random_float(BatteryState.__READY_LOW, BatteryState.__READY_HIGH))
+        Pins.set_pin_voltage(Pins.BatteryVoltage, uniform(BatteryState.__READY_LOW, BatteryState.__READY_HIGH))
 
     @staticmethod
     def set_state_not_ready():
         Pins.set_pin_voltage(Pins.BatteryVoltage,
-                             get_random_float(BatteryState.__NOT_READY_LOW, BatteryState.__NOT_READY_HIGH))
+                             uniform(BatteryState.__NOT_READY_LOW, BatteryState.__NOT_READY_HIGH))
 
     @staticmethod
     def set_state_error():
-        random_error_value_low = get_random_float(0, BatteryState.__NOT_READY_LOW)
-        random_error_value_high = get_random_float(BatteryState.__NOT_READY_HIGH, BatteryState.__NOT_READY_HIGH * 2)
+        random_error_value_low = uniform(0, BatteryState.__NOT_READY_LOW)
+        random_error_value_high = uniform(BatteryState.__NOT_READY_HIGH, BatteryState.__NOT_READY_HIGH * 2)
         Pins.set_pin_voltage(Pins.BatteryVoltage, choice([random_error_value_low, random_error_value_high]))
