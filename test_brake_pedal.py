@@ -22,7 +22,7 @@ class TestStatePressed:
         elif rand_num - 4 <= 0:
             AccPedalState.set_state_50()
         else:
-            # FIXME as was found during manual testing 100% is not working feature
+            # FIXME as was found during manual testing (D-3) 100% is not working feature
             #  so here we have 'temporary' mock for it
             # AccPedalState.set_state_100()
             if rand_num % 2 == 0:
@@ -67,7 +67,7 @@ class TestStatePressed:
         start_voltage = 1.95
         Pins.set_pin_voltage(Pins.BrakePedal, start_voltage)
         for i in range(1, 5):
-            # Here we can set fraction we need. I suppose fluctuation =0.01V is good enough for High voltage battery
+            # Here we can set fraction we need. I suppose fluctuation =0.01V is good enough
             Pins.set_pin_voltage(Pins.BrakePedal, start_voltage + i / 100)
             states = Signal.get_all_signals_states()
             for item in states:
